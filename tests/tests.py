@@ -7,6 +7,7 @@ from unittest import TestCase
 
 from elasticutils import F, S, get_es
 from nose.tools import eq_, assert_raises
+import pyes.exceptions
 
 
 class Meta(object):
@@ -36,7 +37,12 @@ class QueryTest(TestCase):
     @classmethod
     def setup_class(cls):
         es = get_es()
-        es.delete_index_if_exists('test')
+        try:
+            es.delete_index_if_exists('test')
+        except pyes.exceptions.IndexMissingException:
+            # No clue why we have to catch this---would have thought
+            # it was handled by delete_index_if_exists.
+            pass
         data1 = FakeModel(id=1, foo='bar', tag='awesome', width='2')
         data2 = FakeModel(id=2, foo='barf', tag='boring', width='7')
         data3 = FakeModel(id=3, foo='car', tag='awesome', width='5')
@@ -116,7 +122,7 @@ class QueryTest(TestCase):
         result = list(s)[0]  # Get the only result.
         # The highlit text from the foo field should be in index 1 of the
         # excerpts.
-        eq_(s.excerpt(result)[1], [u'train <em>car</em>'])
+        eq_(result.highlighted['foo'], [u'train <em>car</em>'])
 
 
     def test_excerpt_on_object_results(self):

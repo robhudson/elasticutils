@@ -289,27 +289,6 @@ class S(object):
         # significant stuff brighter.
         return self._clone(next_step=('highlight', (highlight_fields, kwargs)))
 
-    def excerpt(self, result):
-        """
-        Take a result and return the excerpts as a list of
-        items--one for each highlight_field in the order specified.
-
-        Each item is a list of text fragments, with portions surrounded by
-        highlight markers.
-
-        """
-        if not self._results_cache:
-            raise ExcerptError(
-                'excerpt() was called before results were fetched.')  # test
-
-        # To enforce oedipus compatibility, we could complain if
-        # highlight_fields are not a subset of the fields requested by a
-        # values() or values_list() call, but ES has no need for such a
-        # restriction.
-
-        return [result._elasticutils_highlights.get(f, [u''])
-                for f in self._highlight_fields]
-
     def query_fields(self, *args):
         """
         Add to the fields that a single-arg call to ``query()`` will query.
@@ -566,6 +545,7 @@ class SearchResults(object):
 
 class _DictResult(dict):
     """Wrapper for a dict that allows us to attach other attributes"""
+    pass
 
 
 class DictSearchResults(SearchResults):
@@ -577,6 +557,7 @@ class DictSearchResults(SearchResults):
 
 class _ListResult(list):
     """Wrapper for a list that allows us to attach other attributes"""
+    pass
 
 
 class ListSearchResults(SearchResults):
@@ -603,18 +584,6 @@ class ObjectSearchResults(SearchResults):
 
 
 def _decorate_with_highlights(obj, hit):
-    """Return obj with its dict of its highlights tacked on."""
-    # There's no simple way to map from a result back to its entry in
-    # the hits hash in constant time, so we'd better annotate it now.
-    obj._elasticutils_highlights = hit.get('highlight', {})
-    # TODO: Once oedipus goes away in SUMO, perhaps a renamed
-    # _elasticutils_highlights should be the public API for
-    # getting at highlights. The FlightDeck branch uses a search_meta hash on
-    # each instance for such things; maybe do that.
+    """Return obj with its dict of its highlights tacked on in 'highlighted'"""
+    obj.highlighted = hit.get('highlight', {})
     return obj
-
-
-class ExcerptError(Exception):
-    """Exception raised if ``S.excerpt()`` is called before results are fetched
-    """
-    pass
