@@ -105,6 +105,18 @@ class QueryTest(TestCase):
 
         eq_(repr(list_), repr(res))
 
+    def test_result_metadata(self):
+        """Test that metadata is on the results"""
+        s = (S(FakeModel).query(foo__text='car')
+                         .filter(id=5))
+        result = list(s)[0]  # Get the only result.
+        # This is a little goofy, but we don't want to test against
+        # a specific score since that could break the test if you
+        # used a different version of elasticsearch.
+        assert result._score > 0
+
+        eq_(result._type, 'fake')
+
     def _test_excerpt(self, method_name=None, *fields):
         """Test excerpting with some arbitrary result format.
 
@@ -122,8 +134,7 @@ class QueryTest(TestCase):
         result = list(s)[0]  # Get the only result.
         # The highlit text from the foo field should be in index 1 of the
         # excerpts.
-        eq_(result.highlighted['foo'], [u'train <em>car</em>'])
-
+        eq_(result._highlighted['foo'], [u'train <em>car</em>'])
 
     def test_excerpt_on_object_results(self):
         """Make sure excerpting with object-style results works."""

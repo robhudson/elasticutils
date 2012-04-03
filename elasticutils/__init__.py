@@ -551,7 +551,7 @@ class _DictResult(dict):
 class DictSearchResults(SearchResults):
     def set_objects(self, hits):
         key = 'fields' if self.fields else '_source'
-        self.objects = [_decorate_with_highlights(_DictResult(r[key]), r)
+        self.objects = [_decorate_with_metadata(_DictResult(r[key]), r)
                         for r in hits]
 
 
@@ -567,7 +567,7 @@ class ListSearchResults(SearchResults):
             objs = [getter(r['fields']) for r in hits]
         else:
             objs = [r['_source'].values() for r in hits]
-        self.objects = [_decorate_with_highlights(_ListResult(o), h)
+        self.objects = [_decorate_with_metadata(_ListResult(o), h)
                         for o, h in izip(objs, hits)]
 
 
@@ -578,12 +578,14 @@ class ObjectSearchResults(SearchResults):
 
     def __iter__(self):
         objs = dict((obj.id, obj) for obj in self.objects)
-        return (_decorate_with_highlights(objs[id], r)
+        return (_decorate_with_metadata(objs[id], r)
                 for (id, r) in
                 izip(self.ids, self.results['hits']['hits']) if id in objs)
 
 
-def _decorate_with_highlights(obj, hit):
-    """Return obj with its dict of its highlights tacked on in 'highlighted'"""
-    obj.highlighted = hit.get('highlight', {})
+def _decorate_with_metadata(obj, hit):
+    """Return obj decorated with _highlighted, _score, and _type"""
+    obj._highlighted = hit.get('highlight', {})
+    obj._score = hit.get('_score')
+    obj._type = hit.get('_type')
     return obj
