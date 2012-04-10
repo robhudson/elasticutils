@@ -488,6 +488,15 @@ class S(object):
             self._results_cache = ResultClass(self.type, hits, self.fields)
         return self._results_cache
 
+    def get_index(self):
+        """Calculates the index and returns it.
+
+        Override this if your application needs to calculate the index
+        differently.
+        """
+        return (settings.ES_INDEXES.get(self.type)
+                or settings.ES_INDEXES['default'])
+
     def raw(self):
         """
         Builds query and passes to ElasticSearch, then returns the raw format
@@ -495,8 +504,7 @@ class S(object):
         """
         qs = self._build_query()
         es = get_es()
-        index = (settings.ES_INDEXES.get(self.type)
-                 or settings.ES_INDEXES['default'])
+        index = self.get_index()
         try:
             hits = es.search(qs, index, self.type._meta.db_table)
         except Exception:
