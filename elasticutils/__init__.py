@@ -497,6 +497,14 @@ class S(object):
         return (settings.ES_INDEXES.get(self.type)
                 or settings.ES_INDEXES['default'])
 
+    def get_doctype(self):
+        """Calculates the doctype and returns it.
+
+        Override this if your application needs to calculate the
+        doctype differently.
+        """
+        return self.type._meta.db_table
+
     def raw(self):
         """
         Builds query and passes to ElasticSearch, then returns the raw format
@@ -505,8 +513,9 @@ class S(object):
         qs = self._build_query()
         es = get_es()
         index = self.get_index()
+        doctype = self.get_doctype()
         try:
-            hits = es.search(qs, index, self.type._meta.db_table)
+            hits = es.search(qs, index, doctype)
         except Exception:
             log.error(qs)
             raise
