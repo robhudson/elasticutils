@@ -1,0 +1,36 @@
+{% load i18n %}
+<script type="javascript">
+  $("#es-queries tbody").on("click", ".djDebugQuery", function(event) {
+    var $this = $(this);
+    var $wrap = $this.parent();
+    var res = JSON.parse($this.text());
+    $this.hide();
+    $wrap.find('.djDebugQueryPretty').text(JSON.stringify(res, undefined, 4));
+  })
+</script>
+
+<table id="es-queries">
+  <thead>
+    <tr>
+      <th style="width: 60%">{% trans 'Query' %}</th>
+      <th style="width: 35%">{% trans 'Timeline' %}</th>
+      <th style="width: 5%">{% trans 'Time' %}&nbsp;(ms)</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for query in queries %}
+    <tr class="{% cycle 'djDebugOdd' 'djDebugEven' %}">
+      <td class="syntax">
+        <div class="djDebugQueryWrap">
+          <div class="djDebugQuery">{{ query.query|safe }}</div>
+          <div class="djDebugQueryPretty"></div>
+        </div>
+      </td>
+      <td>
+        <span class="djDebugLineChart" style="width:{{ query.width_ratio }}%; left:{{ query.start_offset }}%; position: relative;">&nbsp;</span>
+      </td>
+      <td>{{ query.time }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>

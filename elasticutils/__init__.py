@@ -643,6 +643,11 @@ class S(object):
             log.error(qs)
             raise
         log.debug('[%s] %s' % (hits['took'], qs))
+        if hasattr(_local, '_es_queries'):
+            _local._es_queries.append({
+                'query': qs,
+                'time': hits['took']
+            })
         return hits
 
     def __iter__(self):
@@ -737,3 +742,19 @@ def _decorate_with_metadata(obj, hit):
     # Highlight bits
     obj._highlight = hit.get('highlight', {})
     return obj
+
+
+import threading
+from django.conf import settings
+
+if settings.DEBUG:
+    from django.core import signals
+
+    _local = threading.local()
+    _local._es_queries = []
+
+    # A DEBUG only ES request storage with request_started signal to clear.
+    def reset_search_queries(**kwargs):
+        _local._es_queries = []
+
+    signals.request_started.connect(reset_search_queries)
