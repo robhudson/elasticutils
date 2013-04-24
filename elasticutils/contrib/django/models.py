@@ -94,7 +94,7 @@ class Indexable(object):
     """
 
     @classmethod
-    def get_es(cls):
+    def get_es(cls, **overrides):
         """Returns an ElasticSearch object
 
         Override this if you need special functionality.
@@ -102,7 +102,7 @@ class Indexable(object):
         :returns: a pyelasticsearch `ElasticSearch` instance
 
         """
-        return get_es()
+        return get_es(**overrides)
 
     @classmethod
     def get_mapping(cls):
