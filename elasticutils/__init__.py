@@ -7,6 +7,7 @@ from elasticsearch import Elasticsearch
 from elasticsearch.helpers import bulk_index
 
 from elasticutils._version import __version__  # noqa
+from elasticutils.fields import SearchField
 
 
 log = logging.getLogger('elasticutils')
@@ -2194,3 +2195,43 @@ class Indexable(object):
             index = cls.get_index()
 
         es.indices.refresh(index=index)
+
+
+class DeclarativeMappingMeta(type):
+
+    def __new__(cls, name, bases, attrs):
+        # TODO: See about keeping attrs in order so the mapping comes out the
+        # same as the Python code.
+        fields = [(name_, attrs.pop(name_)) for name_, column in attrs.items()
+                  if isinstance(column, SearchField)]
+        attrs['fields'] = fields
+        return super(DeclarativeMappingMeta, cls).__new__(cls, name, bases,
+                                                          attrs)
+
+
+class DocumentType(object):
+    __metaclass__ = DeclarativeMappingMeta
+
+    def get_mapping(self):
+        """
+        Returns mapping based on defined fields.
+        """
+        fields = {}
+        for name, field in self.fields:
+            f = {'type': field.field_type}
+
+            if field.index_fieldname:
+                name = field.index_fieldname
+
+            if not field.analyzed:
+                f['index'] = 'not_analyzed'
+
+            for attr in ('analyzer', 'boost'):
+                if getattr(field, attr, None):
+                    f[attr] = getattr(field, attr)
+
+            fields[name] = f
+
+        mapping = {'properties': fields}
+
+        return mapping
