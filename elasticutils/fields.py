@@ -1,11 +1,10 @@
+import datetime
 import re
-
-# TODO: Don't rely on Django.
-from django.utils import datetime_safe
 
 from .exceptions import SearchFieldError
 
 
+DATE_REGEX = re.compile('^(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2}).*?$')
 DATETIME_REGEX = re.compile('^(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})'
                             '(T|\s+)(?P<hour>\d{2}):(?P<minute>\d{2}):'
                             '(?P<second>\d{2}).*?$')
@@ -133,12 +132,12 @@ class DateField(SearchField):
             return None
 
         if isinstance(value, basestring):
-            match = DATETIME_REGEX.search(value)
+            match = DATE_REGEX.search(value)
 
             if match:
                 data = match.groupdict()
-                return datetime_safe.date(int(data['year']),
-                                          int(data['month']), int(data['day']))
+                return datetime.date(
+                    int(data['year']), int(data['month']), int(data['day']))
             else:
                 raise SearchFieldError(
                     "Date provided to '%s' field doesn't appear to be a valid "
@@ -159,12 +158,10 @@ class DateTimeField(SearchField):
 
             if match:
                 data = match.groupdict()
-                return datetime_safe.datetime(int(data['year']),
-                                              int(data['month']),
-                                              int(data['day']),
-                                              int(data['hour']),
-                                              int(data['minute']),
-                                              int(data['second']))
+                return datetime.datetime(
+                    int(data['year']), int(data['month']), int(data['day']),
+                    int(data['hour']), int(data['minute']),
+                    int(data['second']))
             else:
                 raise SearchFieldError(
                     "Datetime provided to '%s' field doesn't appear to be a "
