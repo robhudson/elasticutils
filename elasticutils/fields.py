@@ -64,11 +64,10 @@ class CharField(SearchField):
 
 
 class IntegerField(SearchField):
-    # TODO: Check other integer types and add them.
     field_type = 'integer'
 
     def __init__(self, type='integer', *args, **kwargs):
-        if type in ('short', 'integer', 'long'):
+        if type in ('byte', 'short', 'integer', 'long'):
             self.field_type = type
         super(IntegerField, self).__init__(*args, **kwargs)
 
