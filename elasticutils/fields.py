@@ -32,21 +32,21 @@ class SearchField(object):
         # Increment order number for future fields.
         SearchField._creation_order += 1
 
-    def prepare(self, obj):
+    def prepare(self, value):
         """
-        Takes data from the provided object and prepares it for storage in the
-        index.
+        Handles conversion between the value sent to Elasticsearch and the type
+        of the field.
 
         Extending classes should override this method.
         """
-        return obj
+        return value
 
     def convert(self, value):
         """
-        Handles conversion between the data found and the type of the field.
+        Handles conversion between the data received from Elasticsearch and the
+        type of the field.
 
-        Extending classes should override this method and provide correct data
-        coercion.
+        Extending classes should override this method.
         """
         return value
 
@@ -54,8 +54,8 @@ class SearchField(object):
 class CharField(SearchField):
     field_type = 'string'
 
-    def prepare(self, obj):
-        return self.convert(super(CharField, self).prepare(obj))
+    def prepare(self, value):
+        return self.convert(super(StringField, self).prepare(value))
 
     def convert(self, value):
         if value is None:
@@ -72,8 +72,8 @@ class IntegerField(SearchField):
             self.field_type = type
         super(IntegerField, self).__init__(*args, **kwargs)
 
-    def prepare(self, obj):
-        return self.convert(super(IntegerField, self).prepare(obj))
+    def prepare(self, value):
+        return self.convert(super(IntegerField, self).prepare(value))
 
     def convert(self, value):
         if value is None:
@@ -90,8 +90,8 @@ class FloatField(SearchField):
             self.field_type = type
         super(FloatField, self).__init__(*args, **kwargs)
 
-    def prepare(self, obj):
-        return self.convert(super(FloatField, self).prepare(obj))
+    def prepare(self, value):
+        return self.convert(super(FloatField, self).prepare(value))
 
     def convert(self, value):
         if value is None:
@@ -103,8 +103,8 @@ class FloatField(SearchField):
 class DecimalField(SearchField):
     field_type = 'string'
 
-    def prepare(self, obj):
-        return self.convert(super(DecimalField, self).prepare(obj))
+    def prepare(self, value):
+        return self.convert(super(DecimalField, self).prepare(value))
 
     def convert(self, value):
         if value is None:
@@ -116,8 +116,8 @@ class DecimalField(SearchField):
 class BooleanField(SearchField):
     field_type = 'boolean'
 
-    def prepare(self, obj):
-        return self.convert(super(BooleanField, self).prepare(obj))
+    def prepare(self, value):
+        return self.convert(super(BooleanField, self).prepare(value))
 
     def convert(self, value):
         if value is None:
@@ -184,8 +184,8 @@ class MultiValueField(SearchField):
         super(MultiValueField, self).__init__(**kwargs)
         self.is_multivalued = True
 
-    def prepare(self, obj):
-        return self.convert(super(MultiValueField, self).prepare(obj))
+    def prepare(self, value):
+        return self.convert(super(MultiValueField, self).prepare(value))
 
     def convert(self, value):
         if value is None:
