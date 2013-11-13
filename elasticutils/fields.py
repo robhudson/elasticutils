@@ -1,3 +1,4 @@
+import base64
 import datetime
 import re
 from decimal import Decimal
@@ -179,6 +180,22 @@ class DateTimeField(SearchField):
                         self.instance_name, value))
 
         return value
+
+
+class BinaryField(SearchField):
+    field_type = 'binary'
+
+    def prepare(self, value):
+        if value is None:
+            return None
+
+        return base64.b64encode(value)
+
+    def convert(self, value):
+        if value is None:
+            return None
+
+        return base64.b64decode(value)
 
 
 # TODO: Not sure we need this actually. Multivalued field types can be their
