@@ -1,5 +1,6 @@
 import datetime
 import re
+from decimal import Decimal
 
 from .exceptions import SearchFieldError
 
@@ -82,8 +83,12 @@ class IntegerField(SearchField):
 
 
 class FloatField(SearchField):
-    # TODO: Check other float types and add them.
     field_type = 'float'
+
+    def __init__(self, type='float', *args, **kwargs):
+        if type in ('float', 'double'):
+            self.field_type = type
+        super(FloatField, self).__init__(*args, **kwargs)
 
     def prepare(self, obj):
         return self.convert(super(FloatField, self).prepare(obj))
@@ -105,8 +110,7 @@ class DecimalField(SearchField):
         if value is None:
             return None
 
-        # TODO: return Decimal(str(value))?
-        return unicode(value)
+        return Decimal(str(value))
 
 
 class BooleanField(SearchField):
