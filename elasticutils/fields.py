@@ -51,7 +51,9 @@ class SearchField(object):
         return value
 
 
-class CharField(SearchField):
+# TODO: Support all attributes for string types:
+# http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/mapping-core-types.html#string
+class StringField(SearchField):
     field_type = 'string'
 
     def prepare(self, value):
@@ -64,6 +66,8 @@ class CharField(SearchField):
         return unicode(value)
 
 
+# TODO: Support all attributes for number types:
+# http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/mapping-core-types.html#number
 class IntegerField(SearchField):
     field_type = 'integer'
 
@@ -113,6 +117,8 @@ class DecimalField(SearchField):
         return Decimal(str(value))
 
 
+# TODO: Support all attributes for boolean types:
+# http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/mapping-core-types.html#boolean
 class BooleanField(SearchField):
     field_type = 'boolean'
 
@@ -126,8 +132,9 @@ class BooleanField(SearchField):
         return bool(value)
 
 
+# TODO: Support all attributes for date types:
+# http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/mapping-core-types.html#date
 class DateField(SearchField):
-    # TODO: Check other date attributes needed here.
     field_type = 'date'
 
     def convert(self, value):
