@@ -15,6 +15,9 @@ class SearchField(object):
 
     field_type = None
 
+    # Used to maintain the order of fields as defined in the class.
+    _creation_order = 0
+
     # TODO: Determine more attributes that need setting.
     def __init__(self, analyzer=None, index_fieldname=None, boost=None,
                  is_multivalued=False, analyzed=True):
@@ -23,6 +26,11 @@ class SearchField(object):
         self.boost = boost
         self.is_multivalued = is_multivalued
         self.analyzed = analyzed
+
+        # Store this fields order.
+        self._creation_order = SearchField._creation_order
+        # Increment order number for future fields.
+        SearchField._creation_order += 1
 
     def prepare(self, obj):
         """

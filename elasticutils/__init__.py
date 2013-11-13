@@ -1,3 +1,4 @@
+import collections
 import copy
 import logging
 from datetime import datetime
@@ -2200,10 +2201,10 @@ class Indexable(object):
 class DeclarativeMappingMeta(type):
 
     def __new__(cls, name, bases, attrs):
-        # TODO: See about keeping attrs in order so the mapping comes out the
-        # same as the Python code.
         fields = [(name_, attrs.pop(name_)) for name_, column in attrs.items()
                   if isinstance(column, SearchField)]
+        # Put fields in order defined in the class.
+        fields.sort(key=lambda f: f[1]._creation_order)
         attrs['fields'] = fields
         return super(DeclarativeMappingMeta, cls).__new__(cls, name, bases,
                                                           attrs)
@@ -2216,7 +2217,7 @@ class DocumentType(object):
         """
         Returns mapping based on defined fields.
         """
-        fields = {}
+        fields = collections.OrderedDict()
         for name, field in self.fields:
             f = {'type': field.field_type}
 
