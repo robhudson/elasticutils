@@ -2,20 +2,19 @@ from unittest import TestCase
 
 from nose.tools import eq_
 
-from elasticutils import DocumentType
-from elasticutils.fields import *
+from elasticutils import DocumentType, fields
 
 
 class BookDocumentType(DocumentType):
 
-    id = IntegerField(type='long')
-    name = StringField(analyzer='snowball')
-    name2 = StringField(analyzed=False, index_fieldname='name_sort')
-    authors = StringField(is_multivalued=True)
-    published_date = DateField()
-    price = DecimalField()
-    is_autographed = BooleanField()
-    sales = IntegerField()
+    id = fields.IntegerField(type='long')
+    name = fields.StringField(analyzer='snowball')
+    name_sort = fields.StringField(index='not_analyzed')
+    authors = fields.StringField(is_multivalued=True)
+    published_date = fields.DateField()
+    price = fields.DecimalField()
+    is_autographed = fields.BooleanField()
+    sales = fields.IntegerField()
 
 
 class DocumentTypeTest(TestCase):

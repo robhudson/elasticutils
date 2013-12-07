@@ -19,14 +19,9 @@ class SearchField(object):
     # Used to maintain the order of fields as defined in the class.
     _creation_order = 0
 
-    # TODO: Determine more attributes that need setting.
-    def __init__(self, analyzer=None, index_fieldname=None, boost=None,
-                 is_multivalued=False, analyzed=True):
-        self.analyzer = analyzer
+    def __init__(self, index_fieldname=None, is_multivalued=False):
         self.index_fieldname = index_fieldname
-        self.boost = boost
         self.is_multivalued = is_multivalued
-        self.analyzed = analyzed
 
         # Store this fields order.
         self._creation_order = SearchField._creation_order
@@ -55,22 +50,25 @@ class SearchField(object):
         """
         Returns the resprentation for this field's definition in the mapping.
         """
-        f = {'type': self.field_type}
-
-        if not self.analyzed:
-            f['index'] = 'not_analyzed'
-
-        for attr in ('analyzer', 'boost'):
-            if getattr(self, attr, None):
-                f[attr] = getattr(self, attr)
-
-        return f
+        return {'type': self.field_type}
 
 
-# TODO: Support all attributes for string types:
-# http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/mapping-core-types.html#string
 class StringField(SearchField):
     field_type = 'string'
+    attrs = ('analyzer', 'boost', 'ignore_above', 'include_in_all', 'index',
+             'index_analyzer', 'index_options', 'null_value', 'omit_norms',
+             'position_offset_gap', 'search_analyzer', 'store', 'term_vector')
+    attr_casts = {
+        'float': ['boost'],
+        'int': ['position_offset_gap'],
+        'bool': ['omit_norms', 'include_in_all'],
+    }
+
+    def __init__(self, *args, **kwargs):
+        for attr in self.attrs:
+            setattr(self, attr, kwargs.pop(attr, None))
+
+        super(StringField, self).__init__(*args, **kwargs)
 
     def prepare(self, value):
         return self.convert(super(StringField, self).prepare(value))
@@ -80,6 +78,26 @@ class StringField(SearchField):
             return None
 
         return unicode(value)
+
+    def get_definition(self):
+        f = super(StringField, self).get_definition()
+
+        for attr in self.attrs:
+            val = getattr(self, attr, None)
+            if val is not None:
+                if attr in self.attr_casts['bool']:
+                    if not val or val == 'false':
+                        f[attr] = False
+                    else:
+                        f[attr] = True
+                elif attr in self.attr_casts['float']:
+                    f[attr] = float(val)
+                elif attr in self.attr_casts['int']:
+                    f[attr] = int(val)
+                else:
+                    f[attr] = val
+
+        return f
 
 
 # TODO: Support all attributes for number types:
