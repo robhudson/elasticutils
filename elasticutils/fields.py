@@ -16,12 +16,17 @@ class SearchField(object):
 
     field_type = None
 
+    attrs = ('boost', 'include_in_all', 'index', 'null_value', 'store')
+    bool_casts = ('include_in_all',)
+    float_casts = ('boost',)
+    int_casts = ()
+
     # Used to maintain the order of fields as defined in the class.
     _creation_order = 0
 
-    def __init__(self, index_fieldname=None, is_multivalued=False):
-        self.index_fieldname = index_fieldname
-        self.is_multivalued = is_multivalued
+    def __init__(self, *args, **kwargs):
+        self.index_fieldname = kwargs.pop('index_fieldname', None)
+        self.is_multivalued = kwargs.pop('is_multivalued', None)
 
         # Store this fields order.
         self._creation_order = SearchField._creation_order
@@ -50,19 +55,34 @@ class SearchField(object):
         """
         Returns the resprentation for this field's definition in the mapping.
         """
-        return {'type': self.field_type}
+        f = {'type': self.field_type}
+
+        for attr in self.attrs:
+            val = getattr(self, attr, None)
+            if val is not None:
+                if attr in self.bool_casts:
+                    if not val or val == 'false':
+                        f[attr] = False
+                    else:
+                        f[attr] = True
+                elif attr in self.float_casts:
+                    f[attr] = float(val)
+                elif attr in self.int_casts:
+                    f[attr] = int(val)
+                else:
+                    f[attr] = str(val)
+
+        return f
 
 
 class StringField(SearchField):
     field_type = 'string'
-    attrs = ('analyzer', 'boost', 'ignore_above', 'include_in_all', 'index',
-             'index_analyzer', 'index_options', 'null_value', 'omit_norms',
-             'position_offset_gap', 'search_analyzer', 'store', 'term_vector')
-    attr_casts = {
-        'float': ['boost'],
-        'int': ['position_offset_gap'],
-        'bool': ['omit_norms', 'include_in_all'],
-    }
+    attrs = SearchField.attrs + (
+        'analyzer', 'ignore_above',
+        'index_analyzer', 'index_options', 'omit_norms',
+        'position_offset_gap', 'search_analyzer', 'term_vector')
+    bool_casts = SearchField.bool_casts + ('omit_norms',)
+    int_casts = SearchField.int_casts + ('position_offset_gap',)
 
     def __init__(self, *args, **kwargs):
         for attr in self.attrs:
@@ -79,35 +99,22 @@ class StringField(SearchField):
 
         return unicode(value)
 
-    def get_definition(self):
-        f = super(StringField, self).get_definition()
 
-        for attr in self.attrs:
-            val = getattr(self, attr, None)
-            if val is not None:
-                if attr in self.attr_casts['bool']:
-                    if not val or val == 'false':
-                        f[attr] = False
-                    else:
-                        f[attr] = True
-                elif attr in self.attr_casts['float']:
-                    f[attr] = float(val)
-                elif attr in self.attr_casts['int']:
-                    f[attr] = int(val)
-                else:
-                    f[attr] = val
-
-        return f
+class NumberField(SearchField):
+    attrs = SearchField.attrs + ('ignore_malformed', 'precision_step')
+    bool_casts = SearchField.bool_casts + ('ignore_malformed',)
+    int_casts = SearchField.int_casts + ('precision_step',)
 
 
-# TODO: Support all attributes for number types:
-# http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/mapping-core-types.html#number
-class IntegerField(SearchField):
+class IntegerField(NumberField):
     field_type = 'integer'
+    int_casts = NumberField.int_casts + ('null_value',)
 
     def __init__(self, type='integer', *args, **kwargs):
         if type in ('byte', 'short', 'integer', 'long'):
             self.field_type = type
+        for attr in self.attrs:
+            setattr(self, attr, kwargs.pop(attr, None))
         super(IntegerField, self).__init__(*args, **kwargs)
 
     def prepare(self, value):
@@ -120,12 +127,15 @@ class IntegerField(SearchField):
         return int(value)
 
 
-class FloatField(SearchField):
+class FloatField(NumberField):
     field_type = 'float'
+    float_casts = NumberField.float_casts + ('null_value',)
 
     def __init__(self, type='float', *args, **kwargs):
         if type in ('float', 'double'):
             self.field_type = type
+        for attr in self.attrs:
+            setattr(self, attr, kwargs.pop(attr, None))
         super(FloatField, self).__init__(*args, **kwargs)
 
     def prepare(self, value):
