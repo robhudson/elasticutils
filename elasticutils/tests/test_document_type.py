@@ -9,9 +9,9 @@ from elasticutils.fields import *
 class BookDocumentType(DocumentType):
 
     id = IntegerField(type='long')
-    name = CharField(analyzer='snowball')
-    name2 = CharField(analyzed=False, index_fieldname='name_sort')
-    authors = CharField(is_multivalued=True)
+    name = StringField(analyzer='snowball')
+    name2 = StringField(analyzed=False, index_fieldname='name_sort')
+    authors = StringField(is_multivalued=True)
     published_date = DateField()
     price = DecimalField()
     is_autographed = BooleanField()
