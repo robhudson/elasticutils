@@ -51,6 +51,21 @@ class SearchField(object):
         """
         return value
 
+    def get_definition(self):
+        """
+        Returns the resprentation for this field's definition in the mapping.
+        """
+        f = {'type': self.field_type}
+
+        if not self.analyzed:
+            f['index'] = 'not_analyzed'
+
+        for attr in ('analyzer', 'boost'):
+            if getattr(self, attr, None):
+                f[attr] = getattr(self, attr)
+
+        return f
+
 
 # TODO: Support all attributes for string types:
 # http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/mapping-core-types.html#string

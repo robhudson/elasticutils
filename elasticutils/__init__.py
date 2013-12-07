@@ -2219,19 +2219,9 @@ class DocumentType(object):
         """
         fields = collections.OrderedDict()
         for name, field in self.fields:
-            f = {'type': field.field_type}
-
-            if field.index_fieldname:
-                name = field.index_fieldname
-
-            if not field.analyzed:
-                f['index'] = 'not_analyzed'
-
-            for attr in ('analyzer', 'boost'):
-                if getattr(field, attr, None):
-                    f[attr] = getattr(field, attr)
-
-            fields[name] = f
+            name = field.index_fieldname or name
+            defn = field.get_definition()
+            fields[name] = defn
 
         mapping = {'properties': fields}
 
