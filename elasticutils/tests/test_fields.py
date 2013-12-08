@@ -1,3 +1,4 @@
+import base64
 import datetime
 from decimal import Decimal
 from unittest import TestCase
@@ -341,3 +342,17 @@ class TestDateTimeField(TestCase):
             eq_(field.get_definition()[attr], False)
             field = fields.FloatField(**{attr: ''})
             eq_(field.get_definition()[attr], False)
+
+
+class TestBinaryField(TestCase):
+
+    def test_type(self):
+        eq_(fields.BinaryField().field_type, 'binary')
+
+    def test_prepare(self):
+        eq_(fields.BinaryField().prepare(None), None)
+        eq_(fields.BinaryField().prepare('test'), base64.b64encode('test'))
+
+    def test_convert(self):
+        eq_(fields.BinaryField().convert(None), None)
+        eq_(fields.BinaryField().convert(base64.b64encode('test')), 'test')

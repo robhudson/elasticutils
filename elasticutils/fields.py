@@ -253,6 +253,10 @@ class DateTimeField(DateField):
 
 class BinaryField(SearchField):
     field_type = 'binary'
+    attrs = ()
+    bool_casts = ()
+    float_casts = ()
+    int_casts = ()
 
     def prepare(self, value):
         if value is None:
@@ -265,23 +269,3 @@ class BinaryField(SearchField):
             return None
 
         return base64.b64decode(value)
-
-
-# TODO: Not sure we need this actually. Multivalued field types can be their
-# base class (e.g. IntegerField(multivalue=True) so Python knows how to return
-# data.
-class MultiValueField(SearchField):
-    field_type = 'string'
-
-    def __init__(self, **kwargs):
-        super(MultiValueField, self).__init__(**kwargs)
-        self.is_multivalued = True
-
-    def prepare(self, value):
-        return self.convert(super(MultiValueField, self).prepare(value))
-
-    def convert(self, value):
-        if value is None:
-            return None
-
-        return list(value)
