@@ -1,3 +1,4 @@
+from decimal import Decimal
 from unittest import TestCase
 
 from nose.tools import eq_
@@ -179,3 +180,62 @@ class TestFloatField(TestCase):
             eq_(field.get_definition()[attr], False)
             field = fields.FloatField(**{attr: ''})
             eq_(field.get_definition()[attr], False)
+
+
+class TestDecimalField(TestCase):
+    """DecimalField subclasses StringField, so we just test a few things."""
+
+    def test_type(self):
+        eq_(fields.DecimalField().field_type, 'string')
+
+    def test_prepare(self):
+        eq_(fields.DecimalField().prepare(Decimal('100.0')), '100.0')
+
+    def test_convert(self):
+        eq_(fields.DecimalField().convert(None), None)
+        eq_(fields.DecimalField().convert('100.0'), Decimal('100.0'))
+
+
+class TestBooleanField(TestCase):
+
+    def test_type(self):
+        eq_(fields.BooleanField().field_type, 'boolean')
+
+    def test_prepare(self):
+        eq_(fields.BooleanField().prepare(True), True)
+        eq_(fields.BooleanField().prepare(False), False)
+
+    def test_convert(self):
+        eq_(fields.BooleanField().convert(None), None)
+        eq_(fields.BooleanField().convert(True), True)
+        eq_(fields.BooleanField().convert(False), False)
+
+    def test_index(self):
+        field = fields.BooleanField(index='no')
+        eq_(field.get_definition()['index'], 'no')
+
+    def test_store(self):
+        field = fields.BooleanField(store='yes')
+        eq_(field.get_definition()['store'], 'yes')
+
+    def test_boost(self):
+        field = fields.BooleanField(boost=2.5)
+        eq_(field.get_definition()['boost'], 2.5)
+        field = fields.BooleanField(boost='2.5')
+        eq_(field.get_definition()['boost'], 2.5)
+
+    def test_null_value(self):
+        field = fields.BooleanField(null_value=True)
+        eq_(field.get_definition()['null_value'], True)
+
+    def test_boolean_attributes(self):
+        # Test truthiness.
+        field = fields.BooleanField(include_in_all=True)
+        eq_(field.get_definition()['include_in_all'], True)
+        field = fields.BooleanField(include_in_all='true')
+        eq_(field.get_definition()['include_in_all'], True)
+        # Test falsiness.
+        field = fields.BooleanField(include_in_all=False)
+        eq_(field.get_definition()['include_in_all'], False)
+        field = fields.BooleanField(include_in_all='')
+        eq_(field.get_definition()['include_in_all'], False)

@@ -148,11 +148,18 @@ class FloatField(NumberField):
         return float(value)
 
 
-class DecimalField(SearchField):
-    field_type = 'string'
+class DecimalField(StringField):
+
+    def __init__(self, *args, **kwargs):
+        for attr in self.attrs:
+            setattr(self, attr, kwargs.pop(attr, None))
+        super(DecimalField, self).__init__(*args, **kwargs)
 
     def prepare(self, value):
-        return self.convert(super(DecimalField, self).prepare(value))
+        if value is None:
+            return None
+
+        return str(value)
 
     def convert(self, value):
         if value is None:
@@ -161,10 +168,14 @@ class DecimalField(SearchField):
         return Decimal(str(value))
 
 
-# TODO: Support all attributes for boolean types:
-# http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/mapping-core-types.html#boolean
 class BooleanField(SearchField):
     field_type = 'boolean'
+    bool_casts = SearchField.bool_casts + ('null_value',)
+
+    def __init__(self, *args, **kwargs):
+        for attr in self.attrs:
+            setattr(self, attr, kwargs.pop(attr, None))
+        super(BooleanField, self).__init__(*args, **kwargs)
 
     def prepare(self, value):
         return self.convert(super(BooleanField, self).prepare(value))
