@@ -1,3 +1,4 @@
+import datetime
 from decimal import Decimal
 from unittest import TestCase
 
@@ -239,3 +240,104 @@ class TestBooleanField(TestCase):
         eq_(field.get_definition()['include_in_all'], False)
         field = fields.BooleanField(include_in_all='')
         eq_(field.get_definition()['include_in_all'], False)
+
+
+class TestDateField(TestCase):
+
+    def test_type(self):
+        eq_(fields.DateField().field_type, 'date')
+
+    def test_prepare(self):
+        eq_(fields.DateField().prepare(datetime.date(2013, 11, 22)),
+            '2013-11-22')
+
+    def test_convert(self):
+        eq_(fields.DateField().convert('2013-11-22'),
+            datetime.date(2013, 11, 22))
+        eq_(fields.DateField().convert('2013-11-22T12:34:56'),
+            datetime.date(2013, 11, 22))
+
+    def test_index(self):
+        field = fields.DateField(index='no')
+        eq_(field.get_definition()['index'], 'no')
+
+    def test_store(self):
+        field = fields.DateField(store='yes')
+        eq_(field.get_definition()['store'], 'yes')
+
+    def test_boost(self):
+        field = fields.DateField(boost=2.5)
+        eq_(field.get_definition()['boost'], 2.5)
+        field = fields.DateField(boost='2.5')
+        eq_(field.get_definition()['boost'], 2.5)
+
+    def test_null_value(self):
+        field = fields.DateField(null_value='2013-11-22')
+        eq_(field.get_definition()['null_value'], '2013-11-22')
+
+    def test_precision_step(self):
+        field = fields.IntegerField(precision_step=4)
+        eq_(field.get_definition()['precision_step'], 4)
+
+    def test_boolean_attributes(self):
+        for attr in ('ignore_malformed', 'include_in_all'):
+            # Test truthiness.
+            field = fields.FloatField(**{attr: True})
+            eq_(field.get_definition()[attr], True)
+            field = fields.FloatField(**{attr: 'true'})
+            eq_(field.get_definition()[attr], True)
+            # Test falsiness.
+            field = fields.FloatField(**{attr: False})
+            eq_(field.get_definition()[attr], False)
+            field = fields.FloatField(**{attr: ''})
+            eq_(field.get_definition()[attr], False)
+
+
+class TestDateTimeField(TestCase):
+
+    def test_type(self):
+        eq_(fields.DateTimeField().field_type, 'date')
+
+    def test_prepare(self):
+        eq_(fields.DateTimeField().prepare(
+            datetime.datetime(2013, 11, 22, 12, 34, 56)),
+            '2013-11-22T12:34:56')
+
+    def test_convert(self):
+        eq_(fields.DateTimeField().convert('2013-11-22T12:34:56'),
+            datetime.datetime(2013, 11, 22, 12, 34, 56))
+
+    def test_index(self):
+        field = fields.DateTimeField(index='no')
+        eq_(field.get_definition()['index'], 'no')
+
+    def test_store(self):
+        field = fields.DateTimeField(store='yes')
+        eq_(field.get_definition()['store'], 'yes')
+
+    def test_boost(self):
+        field = fields.DateTimeField(boost=2.5)
+        eq_(field.get_definition()['boost'], 2.5)
+        field = fields.DateTimeField(boost='2.5')
+        eq_(field.get_definition()['boost'], 2.5)
+
+    def test_null_value(self):
+        field = fields.DateTimeField(null_value='2013-11-22')
+        eq_(field.get_definition()['null_value'], '2013-11-22')
+
+    def test_precision_step(self):
+        field = fields.IntegerField(precision_step=4)
+        eq_(field.get_definition()['precision_step'], 4)
+
+    def test_boolean_attributes(self):
+        for attr in ('ignore_malformed', 'include_in_all'):
+            # Test truthiness.
+            field = fields.FloatField(**{attr: True})
+            eq_(field.get_definition()[attr], True)
+            field = fields.FloatField(**{attr: 'true'})
+            eq_(field.get_definition()[attr], True)
+            # Test falsiness.
+            field = fields.FloatField(**{attr: False})
+            eq_(field.get_definition()[attr], False)
+            field = fields.FloatField(**{attr: ''})
+            eq_(field.get_definition()[attr], False)

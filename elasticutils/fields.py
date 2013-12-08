@@ -100,15 +100,15 @@ class StringField(SearchField):
         return unicode(value)
 
 
-class NumberField(SearchField):
+class NumberFieldBase(SearchField):
     attrs = SearchField.attrs + ('ignore_malformed', 'precision_step')
     bool_casts = SearchField.bool_casts + ('ignore_malformed',)
     int_casts = SearchField.int_casts + ('precision_step',)
 
 
-class IntegerField(NumberField):
+class IntegerField(NumberFieldBase):
     field_type = 'integer'
-    int_casts = NumberField.int_casts + ('null_value',)
+    int_casts = NumberFieldBase.int_casts + ('null_value',)
 
     def __init__(self, type='integer', *args, **kwargs):
         if type in ('byte', 'short', 'integer', 'long'):
@@ -127,9 +127,9 @@ class IntegerField(NumberField):
         return int(value)
 
 
-class FloatField(NumberField):
+class FloatField(NumberFieldBase):
     field_type = 'float'
-    float_casts = NumberField.float_casts + ('null_value',)
+    float_casts = NumberFieldBase.float_casts + ('null_value',)
 
     def __init__(self, type='float', *args, **kwargs):
         if type in ('float', 'double'):
@@ -187,10 +187,26 @@ class BooleanField(SearchField):
         return bool(value)
 
 
-# TODO: Support all attributes for date types:
-# http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/mapping-core-types.html#date
-class DateField(SearchField):
+class DateFieldBase(SearchField):
+    attrs = SearchField.attrs + ('format', 'ignore_malformed',
+                                 'precision_step')
+    bool_casts = SearchField.bool_casts + ('ignore_malformed',)
+    int_casts = SearchField.int_casts + ('precision_step',)
+
+
+class DateField(DateFieldBase):
     field_type = 'date'
+
+    def __init__(self, *args, **kwargs):
+        for attr in self.attrs:
+            setattr(self, attr, kwargs.pop(attr, None))
+        super(DateField, self).__init__(*args, **kwargs)
+
+    def prepare(self, value):
+        if isinstance(value, (datetime.date, datetime.datetime)):
+            return value.isoformat()
+
+        return value
 
     def convert(self, value):
         if value is None:
@@ -211,8 +227,7 @@ class DateField(SearchField):
         return value
 
 
-class DateTimeField(SearchField):
-    field_type = 'datetime'
+class DateTimeField(DateField):
 
     def convert(self, value):
         if value is None:
