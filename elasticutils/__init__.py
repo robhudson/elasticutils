@@ -1,7 +1,6 @@
 import copy
 import logging
 from datetime import datetime
-from operator import itemgetter
 
 from elasticsearch import Elasticsearch
 from elasticsearch.helpers import bulk_index
@@ -574,9 +573,9 @@ class S(PythonMixin):
         >>> list(S().values_list())
         [(1, 'fred', 40), (2, 'brian', 30), (3, 'james', 45)]
         >>> list(S().values_list('id', 'name'))
-        [(1, 'fred'), (2, 'brian'), (3, 'james')]
+        [([1], ['fred']), ([2], ['brian']), ([3], ['james'])]
         >>> list(S().values_list('name', 'id'))
-        [('fred', 1), ('brian', 2), ('james', 3)]
+        [(['fred'], [1]), (['brian'], [2]), (['james'], [3])]
 
         .. Note::
 
@@ -604,7 +603,7 @@ class S(PythonMixin):
         >>> list(S().values_dict())
         [{'id': 1, 'name': 'fred', 'age': 40}, ...]
         >>> list(S().values_dict('id', 'name'))
-        [{'id': 1, 'name': 'fred'}, ...]
+        [{'id': [1], 'name': ['fred']}, ...]
 
         """
         return self._clone(next_step=('values_dict', fields))
@@ -876,7 +875,7 @@ class S(PythonMixin):
         """
         Return a new S instance with facet args combined with existing
         set.
-        
+
         :arg args: The list of facets to return.
 
         Additional keyword options:
@@ -1748,33 +1747,45 @@ class TupleResult(tuple):
 
 class DictSearchResults(SearchResults):
     """
-    SearchResults subclass that returns a results in the form of a
-    dict.
+    SearchResults subclass that returns a results in the form of a dict.
     """
     def set_objects(self, results):
-        key = 'fields' if self.fields else '_source'
-        self.objects = [decorate_with_metadata(DictResult(r[key]), r)
-                        for r in results]
+        objs = []
+
+        if self.fields:
+            # When fields are specified in `values_dict(...)` we return the
+            # fields. Each field is coerced to a list to match the
+            # Elasticsearch >= 1.0 style.
+            for r in results:
+                hit = {}
+                for field, value in r['fields'].items():
+                    if type(value) != list:
+                        value = [value]
+                    hit[field] = value
+                objs.append(decorate_with_metadata(DictResult(hit), r))
+            self.objects = objs
+        else:
+            self.objects = [decorate_with_metadata(DictResult(r['_source']), r)
+                            for r in results]
 
 
 class ListSearchResults(SearchResults):
     """
-    SearchResults subclass that returns a results in the form of a
-    tuple.
+    SearchResults subclass that returns a results in the form of a tuple.
     """
     def set_objects(self, results):
-        if self.fields:
-            getter = itemgetter(*self.fields)
-            objs = [(getter(r['fields']), r) for r in results]
+        key = 'fields' if self.fields else '_source'
 
-            # itemgetter returns an item--not a tuple of one item--if
-            # there is only one thing in self.fields. Since we want
-            # this to always return a list of tuples, we need to fix
-            # that case here.
-            if len(self.fields) == 1:
-                objs = [((obj,), r) for obj, r in objs]
-        else:
-            objs = [(r['_source'].values(), r) for r in results]
+        # When fields are specified in `values_list(...)` we return the fields.
+        # Each field is coerced to a list to match the Elasticsearch >= 1.0.
+        objs = []
+        for r in results:
+            values = []
+            for v in r[key].values():
+                if key == 'fields' and type(v) != list:
+                    v = [v]
+                values.append(v)
+            objs.append((values, r))
         self.objects = [decorate_with_metadata(TupleResult(obj), r)
                         for obj, r in objs]
 

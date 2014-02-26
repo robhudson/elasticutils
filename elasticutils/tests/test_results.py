@@ -83,10 +83,22 @@ class TestResultsWithData(ESTestCase):
         searcher = list(self.get_s(FakeMappingType).query(foo='bar'))
         assert isinstance(searcher[0], FakeMappingType)
 
-    def test_values_dict_results(self):
+    def test_values_dict_no_fields(self):
         """With values_dict, return list of dicts."""
         searcher = list(self.get_s().query(foo='bar').values_dict())
         assert isinstance(searcher[0], dict)
+        eq_(searcher[0]['id'], 1)
+        eq_(searcher[0]['foo'], u'bar')
+        eq_(searcher[0]['tag'], u'awesome')
+        eq_(searcher[0]['width'], u'2')
+
+    def test_values_dict_results(self):
+        """With values_dict, return list of dicts."""
+        searcher = list(self.get_s().query(foo='bar').values_dict('foo',
+                                                                  'width'))
+        assert isinstance(searcher[0], dict)
+        eq_(searcher[0]['width'], [u'2'])
+        eq_(searcher[0]['foo'], [u'bar'])
 
     def test_values_list_no_fields(self):
         """Specifying no fields with values_list defaults to ['id']."""
@@ -101,6 +113,7 @@ class TestResultsWithData(ESTestCase):
         searcher = list(self.get_s().query(foo='bar')
                                     .values_list('foo', 'width'))
         assert isinstance(searcher[0], tuple)
+        eq_(sorted(searcher[0]), [[u'2'], [u'bar']])
 
     def test_default_results_form_has_metadata(self):
         """Test default results form has metadata."""
