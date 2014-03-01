@@ -15,15 +15,20 @@ DATETIME_REGEX = re.compile('^(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})'
 class SearchField(object):
 
     field_type = None
-
-    attrs = ('boost', 'include_in_all', 'index', 'null_value', 'store')
+    attrs = []
 
     # Used to maintain the order of fields as defined in the class.
     _creation_order = 0
 
     def __init__(self, *args, **kwargs):
-        self.index_fieldname = kwargs.pop('index_fieldname', None)
-        self.is_multivalued = kwargs.pop('is_multivalued', None)
+        # These are special.
+        for attr in ('index_fieldname', 'is_multivalue'):
+            setattr(self, attr, kwargs.pop(attr, None))
+
+        # Set all kwargs on self for later access.
+        for attr in kwargs.keys():
+            self.attrs.append(attr)
+            setattr(self, attr, kwargs.pop(attr, None))
 
         # Store this fields order.
         self._creation_order = SearchField._creation_order
@@ -64,16 +69,6 @@ class SearchField(object):
 
 class StringField(SearchField):
     field_type = 'string'
-    attrs = SearchField.attrs + (
-        'analyzer', 'ignore_above',
-        'index_analyzer', 'index_options', 'omit_norms',
-        'position_offset_gap', 'search_analyzer', 'term_vector')
-
-    def __init__(self, *args, **kwargs):
-        for attr in self.attrs:
-            setattr(self, attr, kwargs.pop(attr, None))
-
-        super(StringField, self).__init__(*args, **kwargs)
 
     def prepare(self, value):
         return self.convert(super(StringField, self).prepare(value))
@@ -85,18 +80,12 @@ class StringField(SearchField):
         return unicode(value)
 
 
-class NumberFieldBase(SearchField):
-    attrs = SearchField.attrs + ('ignore_malformed', 'precision_step')
-
-
-class IntegerField(NumberFieldBase):
+class IntegerField(SearchField):
     field_type = 'integer'
 
     def __init__(self, type='integer', *args, **kwargs):
         if type in ('byte', 'short', 'integer', 'long'):
             self.field_type = type
-        for attr in self.attrs:
-            setattr(self, attr, kwargs.pop(attr, None))
         super(IntegerField, self).__init__(*args, **kwargs)
 
     def prepare(self, value):
@@ -109,14 +98,12 @@ class IntegerField(NumberFieldBase):
         return int(value)
 
 
-class FloatField(NumberFieldBase):
+class FloatField(SearchField):
     field_type = 'float'
 
     def __init__(self, type='float', *args, **kwargs):
         if type in ('float', 'double'):
             self.field_type = type
-        for attr in self.attrs:
-            setattr(self, attr, kwargs.pop(attr, None))
         super(FloatField, self).__init__(*args, **kwargs)
 
     def prepare(self, value):
@@ -130,11 +117,6 @@ class FloatField(NumberFieldBase):
 
 
 class DecimalField(StringField):
-
-    def __init__(self, *args, **kwargs):
-        for attr in self.attrs:
-            setattr(self, attr, kwargs.pop(attr, None))
-        super(DecimalField, self).__init__(*args, **kwargs)
 
     def prepare(self, value):
         if value is None:
@@ -152,11 +134,6 @@ class DecimalField(StringField):
 class BooleanField(SearchField):
     field_type = 'boolean'
 
-    def __init__(self, *args, **kwargs):
-        for attr in self.attrs:
-            setattr(self, attr, kwargs.pop(attr, None))
-        super(BooleanField, self).__init__(*args, **kwargs)
-
     def prepare(self, value):
         return self.convert(super(BooleanField, self).prepare(value))
 
@@ -167,18 +144,8 @@ class BooleanField(SearchField):
         return bool(value)
 
 
-class DateFieldBase(SearchField):
-    attrs = SearchField.attrs + ('format', 'ignore_malformed',
-                                 'precision_step')
-
-
-class DateField(DateFieldBase):
+class DateField(SearchField):
     field_type = 'date'
-
-    def __init__(self, *args, **kwargs):
-        for attr in self.attrs:
-            setattr(self, attr, kwargs.pop(attr, None))
-        super(DateField, self).__init__(*args, **kwargs)
 
     def prepare(self, value):
         if isinstance(value, (datetime.date, datetime.datetime)):
@@ -231,7 +198,6 @@ class DateTimeField(DateField):
 
 class BinaryField(SearchField):
     field_type = 'binary'
-    attrs = ()
 
     def prepare(self, value):
         if value is None:
