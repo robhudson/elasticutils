@@ -13,12 +13,13 @@ class TestStringField(TestCase):
     def test_type(self):
         eq_(fields.StringField().field_type, 'string')
 
-    def test_prepare(self):
-        eq_(fields.StringField().prepare('test'), 'test')
+    def test_to_es(self):
+        eq_(fields.StringField().to_es(None), None)
+        eq_(fields.StringField().to_es('test'), 'test')
 
-    def test_convert(self):
-        eq_(fields.StringField().convert(None), None)
-        eq_(fields.StringField().convert('test'), 'test')
+    def test_to_python(self):
+        eq_(fields.StringField().to_python(None), None)
+        eq_(fields.StringField().to_python('test'), 'test')
 
     def test_index(self):
         field = fields.StringField(index='not_analyzed')
@@ -81,12 +82,15 @@ class TestIntegerField(TestCase):
         eq_(fields.IntegerField(type='long').field_type, 'long')
         eq_(fields.IntegerField(type='foo').field_type, 'integer')
 
-    def test_prepare(self):
-        eq_(fields.IntegerField().prepare(100), 100)
+    def test_to_es(self):
+        eq_(fields.IntegerField().to_python(None), None)
+        eq_(fields.IntegerField().to_es(100), 100)
+        eq_(fields.IntegerField().to_es('100'), 100)
 
-    def test_convert(self):
-        eq_(fields.IntegerField().convert(None), None)
-        eq_(fields.IntegerField().convert(100), 100)
+    def test_to_python(self):
+        eq_(fields.IntegerField().to_python(None), None)
+        eq_(fields.IntegerField().to_python(100), 100)
+        eq_(fields.IntegerField().to_es('100'), 100)
 
     def test_index(self):
         field = fields.IntegerField(index='no')
@@ -123,12 +127,15 @@ class TestFloatField(TestCase):
         eq_(fields.FloatField(type='double').field_type, 'double')
         eq_(fields.FloatField(type='foo').field_type, 'float')
 
-    def test_prepare(self):
-        eq_(fields.FloatField().prepare(100), 100.0)
+    def test_to_es(self):
+        eq_(fields.FloatField().to_python(None), None)
+        eq_(fields.FloatField().to_es(100), 100.0)
+        eq_(fields.FloatField().to_es('100'), 100.0)
 
-    def test_convert(self):
-        eq_(fields.FloatField().convert(None), None)
-        eq_(fields.FloatField().convert(100), 100.0)
+    def test_to_python(self):
+        eq_(fields.FloatField().to_python(None), None)
+        eq_(fields.FloatField().to_python(100), 100.0)
+        eq_(fields.FloatField().to_es('100'), 100.0)
 
     def test_index(self):
         field = fields.FloatField(index='no')
@@ -164,12 +171,14 @@ class TestDecimalField(TestCase):
     def test_type(self):
         eq_(fields.DecimalField().field_type, 'string')
 
-    def test_prepare(self):
-        eq_(fields.DecimalField().prepare(Decimal('100.0')), '100.0')
+    def test_to_es(self):
+        eq_(fields.DecimalField().to_python(None), None)
+        eq_(fields.DecimalField().to_es(Decimal('100.0')), '100.0')
+        eq_(fields.DecimalField().to_es(Decimal('100')), '100.0')
 
-    def test_convert(self):
-        eq_(fields.DecimalField().convert(None), None)
-        eq_(fields.DecimalField().convert('100.0'), Decimal('100.0'))
+    def test_to_python(self):
+        eq_(fields.DecimalField().to_python(None), None)
+        eq_(fields.DecimalField().to_python('100.0'), Decimal('100.0'))
 
 
 class TestBooleanField(TestCase):
@@ -177,14 +186,15 @@ class TestBooleanField(TestCase):
     def test_type(self):
         eq_(fields.BooleanField().field_type, 'boolean')
 
-    def test_prepare(self):
-        eq_(fields.BooleanField().prepare(True), True)
-        eq_(fields.BooleanField().prepare(False), False)
+    def test_to_es(self):
+        eq_(fields.BooleanField().to_python(None), None)
+        eq_(fields.BooleanField().to_es(True), True)
+        eq_(fields.BooleanField().to_es(False), False)
 
-    def test_convert(self):
-        eq_(fields.BooleanField().convert(None), None)
-        eq_(fields.BooleanField().convert(True), True)
-        eq_(fields.BooleanField().convert(False), False)
+    def test_to_python(self):
+        eq_(fields.BooleanField().to_python(None), None)
+        eq_(fields.BooleanField().to_python(True), True)
+        eq_(fields.BooleanField().to_python(False), False)
 
     def test_index(self):
         field = fields.BooleanField(index='no')
@@ -214,14 +224,15 @@ class TestDateField(TestCase):
     def test_type(self):
         eq_(fields.DateField().field_type, 'date')
 
-    def test_prepare(self):
-        eq_(fields.DateField().prepare(datetime.date(2013, 11, 22)),
+    def test_to_es(self):
+        eq_(fields.DateField().to_es(datetime.date(2013, 11, 22)),
             '2013-11-22')
 
-    def test_convert(self):
-        eq_(fields.DateField().convert('2013-11-22'),
+    def test_to_python(self):
+        eq_(fields.DateField().to_python(None), None)
+        eq_(fields.DateField().to_python('2013-11-22'),
             datetime.date(2013, 11, 22))
-        eq_(fields.DateField().convert('2013-11-22T12:34:56'),
+        eq_(fields.DateField().to_python('2013-11-22T12:34:56'),
             datetime.date(2013, 11, 22))
 
     def test_index(self):
@@ -257,13 +268,14 @@ class TestDateTimeField(TestCase):
     def test_type(self):
         eq_(fields.DateTimeField().field_type, 'date')
 
-    def test_prepare(self):
-        eq_(fields.DateTimeField().prepare(
+    def test_to_es(self):
+        eq_(fields.DateTimeField().to_es(
             datetime.datetime(2013, 11, 22, 12, 34, 56)),
             '2013-11-22T12:34:56')
 
-    def test_convert(self):
-        eq_(fields.DateTimeField().convert('2013-11-22T12:34:56'),
+    def test_to_python(self):
+        eq_(fields.DateTimeField().to_python(None), None)
+        eq_(fields.DateTimeField().to_python('2013-11-22T12:34:56'),
             datetime.datetime(2013, 11, 22, 12, 34, 56))
 
     def test_index(self):
@@ -299,10 +311,10 @@ class TestBinaryField(TestCase):
     def test_type(self):
         eq_(fields.BinaryField().field_type, 'binary')
 
-    def test_prepare(self):
-        eq_(fields.BinaryField().prepare(None), None)
-        eq_(fields.BinaryField().prepare('test'), base64.b64encode('test'))
+    def test_to_es(self):
+        eq_(fields.BinaryField().to_es(None), None)
+        eq_(fields.BinaryField().to_es('test'), base64.b64encode('test'))
 
-    def test_convert(self):
-        eq_(fields.BinaryField().convert(None), None)
-        eq_(fields.BinaryField().convert(base64.b64encode('test')), 'test')
+    def test_to_python(self):
+        eq_(fields.BinaryField().to_python(None), None)
+        eq_(fields.BinaryField().to_python(base64.b64encode('test')), 'test')

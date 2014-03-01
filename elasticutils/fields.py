@@ -35,19 +35,17 @@ class SearchField(object):
         # Increment order number for future fields.
         SearchField._creation_order += 1
 
-    def prepare(self, value):
+    def to_es(self, value):
         """
-        Handles conversion between the value sent to Elasticsearch and the type
-        of the field.
+        Converts a Python value to an Elasticsearch value.
 
         Extending classes should override this method.
         """
         return value
 
-    def convert(self, value):
+    def to_python(self, value):
         """
-        Handles conversion between the data received from Elasticsearch and the
-        type of the field.
+        Converts an Elasticsearch value to a Python value.
 
         Extending classes should override this method.
         """
@@ -70,10 +68,13 @@ class SearchField(object):
 class StringField(SearchField):
     field_type = 'string'
 
-    def prepare(self, value):
-        return self.convert(super(StringField, self).prepare(value))
+    def to_es(self, value):
+        if value is None:
+            return None
 
-    def convert(self, value):
+        return unicode(value)
+
+    def to_python(self, value):
         if value is None:
             return None
 
@@ -88,10 +89,13 @@ class IntegerField(SearchField):
             self.field_type = type
         super(IntegerField, self).__init__(*args, **kwargs)
 
-    def prepare(self, value):
-        return self.convert(super(IntegerField, self).prepare(value))
+    def to_es(self, value):
+        if value is None:
+            return None
 
-    def convert(self, value):
+        return int(value)
+
+    def to_python(self, value):
         if value is None:
             return None
 
@@ -106,10 +110,13 @@ class FloatField(SearchField):
             self.field_type = type
         super(FloatField, self).__init__(*args, **kwargs)
 
-    def prepare(self, value):
-        return self.convert(super(FloatField, self).prepare(value))
+    def to_es(self, value):
+        if value is None:
+            return None
 
-    def convert(self, value):
+        return float(value)
+
+    def to_python(self, value):
         if value is None:
             return None
 
@@ -118,13 +125,13 @@ class FloatField(SearchField):
 
 class DecimalField(StringField):
 
-    def prepare(self, value):
+    def to_es(self, value):
         if value is None:
             return None
 
-        return str(value)
+        return str(float(value))
 
-    def convert(self, value):
+    def to_python(self, value):
         if value is None:
             return None
 
@@ -134,10 +141,13 @@ class DecimalField(StringField):
 class BooleanField(SearchField):
     field_type = 'boolean'
 
-    def prepare(self, value):
-        return self.convert(super(BooleanField, self).prepare(value))
+    def to_es(self, value):
+        if value is None:
+            return None
 
-    def convert(self, value):
+        return bool(value)
+
+    def to_python(self, value):
         if value is None:
             return None
 
@@ -147,13 +157,13 @@ class BooleanField(SearchField):
 class DateField(SearchField):
     field_type = 'date'
 
-    def prepare(self, value):
+    def to_es(self, value):
         if isinstance(value, (datetime.date, datetime.datetime)):
             return value.isoformat()
 
         return value
 
-    def convert(self, value):
+    def to_python(self, value):
         if value is None:
             return None
 
@@ -174,7 +184,7 @@ class DateField(SearchField):
 
 class DateTimeField(DateField):
 
-    def convert(self, value):
+    def to_python(self, value):
         if value is None:
             return None
 
@@ -199,13 +209,13 @@ class DateTimeField(DateField):
 class BinaryField(SearchField):
     field_type = 'binary'
 
-    def prepare(self, value):
+    def to_es(self, value):
         if value is None:
             return None
 
         return base64.b64encode(value)
 
-    def convert(self, value):
+    def to_python(self, value):
         if value is None:
             return None
 
