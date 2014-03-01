@@ -17,9 +17,6 @@ class SearchField(object):
     field_type = None
 
     attrs = ('boost', 'include_in_all', 'index', 'null_value', 'store')
-    bool_casts = ('include_in_all',)
-    float_casts = ('boost',)
-    int_casts = ()
 
     # Used to maintain the order of fields as defined in the class.
     _creation_order = 0
@@ -60,17 +57,7 @@ class SearchField(object):
         for attr in self.attrs:
             val = getattr(self, attr, None)
             if val is not None:
-                if attr in self.bool_casts:
-                    if not val or val == 'false':
-                        f[attr] = False
-                    else:
-                        f[attr] = True
-                elif attr in self.float_casts:
-                    f[attr] = float(val)
-                elif attr in self.int_casts:
-                    f[attr] = int(val)
-                else:
-                    f[attr] = str(val)
+                f[attr] = val
 
         return f
 
@@ -81,8 +68,6 @@ class StringField(SearchField):
         'analyzer', 'ignore_above',
         'index_analyzer', 'index_options', 'omit_norms',
         'position_offset_gap', 'search_analyzer', 'term_vector')
-    bool_casts = SearchField.bool_casts + ('omit_norms',)
-    int_casts = SearchField.int_casts + ('position_offset_gap',)
 
     def __init__(self, *args, **kwargs):
         for attr in self.attrs:
@@ -102,13 +87,10 @@ class StringField(SearchField):
 
 class NumberFieldBase(SearchField):
     attrs = SearchField.attrs + ('ignore_malformed', 'precision_step')
-    bool_casts = SearchField.bool_casts + ('ignore_malformed',)
-    int_casts = SearchField.int_casts + ('precision_step',)
 
 
 class IntegerField(NumberFieldBase):
     field_type = 'integer'
-    int_casts = NumberFieldBase.int_casts + ('null_value',)
 
     def __init__(self, type='integer', *args, **kwargs):
         if type in ('byte', 'short', 'integer', 'long'):
@@ -129,7 +111,6 @@ class IntegerField(NumberFieldBase):
 
 class FloatField(NumberFieldBase):
     field_type = 'float'
-    float_casts = NumberFieldBase.float_casts + ('null_value',)
 
     def __init__(self, type='float', *args, **kwargs):
         if type in ('float', 'double'):
@@ -170,7 +151,6 @@ class DecimalField(StringField):
 
 class BooleanField(SearchField):
     field_type = 'boolean'
-    bool_casts = SearchField.bool_casts + ('null_value',)
 
     def __init__(self, *args, **kwargs):
         for attr in self.attrs:
@@ -190,8 +170,6 @@ class BooleanField(SearchField):
 class DateFieldBase(SearchField):
     attrs = SearchField.attrs + ('format', 'ignore_malformed',
                                  'precision_step')
-    bool_casts = SearchField.bool_casts + ('ignore_malformed',)
-    int_casts = SearchField.int_casts + ('precision_step',)
 
 
 class DateField(DateFieldBase):
@@ -254,9 +232,6 @@ class DateTimeField(DateField):
 class BinaryField(SearchField):
     field_type = 'binary'
     attrs = ()
-    bool_casts = ()
-    float_casts = ()
-    int_casts = ()
 
     def prepare(self, value):
         if value is None:

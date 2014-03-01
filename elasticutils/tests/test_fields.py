@@ -35,8 +35,6 @@ class TestStringField(TestCase):
     def test_boost(self):
         field = fields.StringField(boost=2.5)
         eq_(field.get_definition()['boost'], 2.5)
-        field = fields.StringField(boost='2.5')
-        eq_(field.get_definition()['boost'], 2.5)
 
     def test_null_value(self):
         field = fields.StringField(null_value='na')
@@ -44,15 +42,9 @@ class TestStringField(TestCase):
 
     def test_boolean_attributes(self):
         for attr in ('omit_norms', 'include_in_all'):
-            # Test truthiness.
             field = fields.StringField(**{attr: True})
             eq_(field.get_definition()[attr], True)
-            field = fields.StringField(**{attr: 'true'})
-            eq_(field.get_definition()[attr], True)
-            # Test falsiness.
             field = fields.StringField(**{attr: False})
-            eq_(field.get_definition()[attr], False)
-            field = fields.StringField(**{attr: ''})
             eq_(field.get_definition()[attr], False)
 
     def test_index_options(self):
@@ -77,8 +69,6 @@ class TestStringField(TestCase):
 
     def test_position_offset_gap(self):
         field = fields.StringField(position_offset_gap=2)
-        eq_(field.get_definition()['position_offset_gap'], 2)
-        field = fields.StringField(position_offset_gap='2')
         eq_(field.get_definition()['position_offset_gap'], 2)
 
 
@@ -113,8 +103,6 @@ class TestIntegerField(TestCase):
     def test_boost(self):
         field = fields.IntegerField(boost=2.5)
         eq_(field.get_definition()['boost'], 2.5)
-        field = fields.IntegerField(boost='2.5')
-        eq_(field.get_definition()['boost'], 2.5)
 
     def test_null_value(self):
         field = fields.IntegerField(null_value=1)
@@ -122,15 +110,9 @@ class TestIntegerField(TestCase):
 
     def test_boolean_attributes(self):
         for attr in ('ignore_malformed', 'include_in_all'):
-            # Test truthiness.
             field = fields.IntegerField(**{attr: True})
             eq_(field.get_definition()[attr], True)
-            field = fields.IntegerField(**{attr: 'true'})
-            eq_(field.get_definition()[attr], True)
-            # Test falsiness.
             field = fields.IntegerField(**{attr: False})
-            eq_(field.get_definition()[attr], False)
-            field = fields.IntegerField(**{attr: ''})
             eq_(field.get_definition()[attr], False)
 
 
@@ -163,8 +145,6 @@ class TestFloatField(TestCase):
     def test_boost(self):
         field = fields.FloatField(boost=2.5)
         eq_(field.get_definition()['boost'], 2.5)
-        field = fields.FloatField(boost='2.5')
-        eq_(field.get_definition()['boost'], 2.5)
 
     def test_null_value(self):
         field = fields.FloatField(null_value=1.0)
@@ -172,15 +152,9 @@ class TestFloatField(TestCase):
 
     def test_boolean_attributes(self):
         for attr in ('ignore_malformed', 'include_in_all'):
-            # Test truthiness.
             field = fields.FloatField(**{attr: True})
             eq_(field.get_definition()[attr], True)
-            field = fields.FloatField(**{attr: 'true'})
-            eq_(field.get_definition()[attr], True)
-            # Test falsiness.
             field = fields.FloatField(**{attr: False})
-            eq_(field.get_definition()[attr], False)
-            field = fields.FloatField(**{attr: ''})
             eq_(field.get_definition()[attr], False)
 
 
@@ -223,23 +197,15 @@ class TestBooleanField(TestCase):
     def test_boost(self):
         field = fields.BooleanField(boost=2.5)
         eq_(field.get_definition()['boost'], 2.5)
-        field = fields.BooleanField(boost='2.5')
-        eq_(field.get_definition()['boost'], 2.5)
 
     def test_null_value(self):
         field = fields.BooleanField(null_value=True)
         eq_(field.get_definition()['null_value'], True)
 
     def test_boolean_attributes(self):
-        # Test truthiness.
         field = fields.BooleanField(include_in_all=True)
         eq_(field.get_definition()['include_in_all'], True)
-        field = fields.BooleanField(include_in_all='true')
-        eq_(field.get_definition()['include_in_all'], True)
-        # Test falsiness.
         field = fields.BooleanField(include_in_all=False)
-        eq_(field.get_definition()['include_in_all'], False)
-        field = fields.BooleanField(include_in_all='')
         eq_(field.get_definition()['include_in_all'], False)
 
 
@@ -269,8 +235,6 @@ class TestDateField(TestCase):
     def test_boost(self):
         field = fields.DateField(boost=2.5)
         eq_(field.get_definition()['boost'], 2.5)
-        field = fields.DateField(boost='2.5')
-        eq_(field.get_definition()['boost'], 2.5)
 
     def test_null_value(self):
         field = fields.DateField(null_value='2013-11-22')
@@ -282,15 +246,9 @@ class TestDateField(TestCase):
 
     def test_boolean_attributes(self):
         for attr in ('ignore_malformed', 'include_in_all'):
-            # Test truthiness.
             field = fields.FloatField(**{attr: True})
             eq_(field.get_definition()[attr], True)
-            field = fields.FloatField(**{attr: 'true'})
-            eq_(field.get_definition()[attr], True)
-            # Test falsiness.
             field = fields.FloatField(**{attr: False})
-            eq_(field.get_definition()[attr], False)
-            field = fields.FloatField(**{attr: ''})
             eq_(field.get_definition()[attr], False)
 
 
@@ -319,8 +277,6 @@ class TestDateTimeField(TestCase):
     def test_boost(self):
         field = fields.DateTimeField(boost=2.5)
         eq_(field.get_definition()['boost'], 2.5)
-        field = fields.DateTimeField(boost='2.5')
-        eq_(field.get_definition()['boost'], 2.5)
 
     def test_null_value(self):
         field = fields.DateTimeField(null_value='2013-11-22')
@@ -332,15 +288,9 @@ class TestDateTimeField(TestCase):
 
     def test_boolean_attributes(self):
         for attr in ('ignore_malformed', 'include_in_all'):
-            # Test truthiness.
             field = fields.FloatField(**{attr: True})
             eq_(field.get_definition()[attr], True)
-            field = fields.FloatField(**{attr: 'true'})
-            eq_(field.get_definition()[attr], True)
-            # Test falsiness.
             field = fields.FloatField(**{attr: False})
-            eq_(field.get_definition()[attr], False)
-            field = fields.FloatField(**{attr: ''})
             eq_(field.get_definition()[attr], False)
 
 
